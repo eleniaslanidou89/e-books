@@ -1,65 +1,71 @@
-import Head from 'next/head'
-import styles from '../styles/Home.module.css'
+import { useEffect, useState } from "react"
+import React from "react"
+import Head from "next/head"
+import fetch from "isomorphic-unfetch"
+import Loading from "../components/Loading"
+import IntroSection from "../components/IntroSection"
+import CarouselSection from "../components/CarouselSection"
+import NavbarSection from "../components/NavbarSection"
+import Footer from "../components/Footer"
 
-export default function Home() {
-  return (
-    <div className={styles.container}>
-      <Head>
-        <title>Create Next App</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
+const Home = () => {
+  const [loading, setLoading] = useState(true);
+  const [dataBooks, setDataBooks] = useState([]);
+  const [searchTerm, setSearchTerm] = useState();
+  const [page, setPage] = useState("0"); //totalitems
+  const [maxResults, setmaxResults] = useState("16");
+  const [cart, setCart] = useState([]);
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+  const getBooks = async () => {
+    try {
+      const LabelsData = await fetch(
+        "https://www.googleapis.com/books/v1/volumes?q=" +
+          searchTerm +
+          "&maxResults=" +
+          maxResults +
+          "&startIndex=" +
+          page
+      );
+      const body = await LabelsData.json();
+      if (LabelsData.status !== 200) {
+        console.log(
+          "Error while getting Labels. See error message below: Status ",
+          LabelsData.status
+        );
+      }
+      const books = body.items;
+      console.log("books", books);
+      setDataBooks(books);
+      console.log("dataBooks", dataBooks);
+      setLoading(false);
+    } catch (error) {
+      console.log("Labels error. See error message below:", error);
+    }
+  };
 
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code}>pages/index.js</code>
-        </p>
-
-        <div className={styles.grid}>
-          <a href="https://nextjs.org/docs" className={styles.card}>
-            <h3>Documentation &rarr;</h3>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn" className={styles.card}>
-            <h3>Learn &rarr;</h3>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a
-            href="https://github.com/vercel/next.js/tree/master/examples"
-            className={styles.card}
-          >
-            <h3>Examples &rarr;</h3>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-            className={styles.card}
-          >
-            <h3>Deploy &rarr;</h3>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
-        </div>
+  useEffect(() => {
+    getBooks();
+  }, []);
+  
+  if (loading) {
+    return (
+      <main>
+        <Loading />
       </main>
+    );
+  }
 
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <img src="/vercel.svg" alt="Vercel Logo" className={styles.logo} />
-        </a>
-      </footer>
+  return (
+    <div>
+      <Head>
+        <title>E-books</title>
+      </Head>
+      <NavbarSection />
+      <IntroSection />
+      <CarouselSection />
+      <Footer />
     </div>
   )
 }
+
+export default Home
